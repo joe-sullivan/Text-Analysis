@@ -49,8 +49,7 @@ def read_src(path):
 	# get files
 	files = [os.path.join(path, x) for x in os.listdir(path)]
 	# sort by smallest first (simple way to limit search space)
-	if smallest:
-		sorted_files = sorted(files, key=os.path.getsize)
+	sorted_files = sorted(files, key=os.path.getsize)
 	for file in sorted_files:
 		# read file into data structure
 		with open(os.path.join(path, file), 'r') as f:
