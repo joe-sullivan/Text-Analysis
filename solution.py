@@ -10,52 +10,29 @@ class Logging:
 		if self.enabled:
 			print(msg)
 
-class Trie:
-	def __init__(self):
-		self.end = '_end'
-		self.root = dict()
-
-	def insert(self, word):
-		current_dict = self.root
-		for letter in word:
-			current_dict = current_dict.setdefault(letter, {})
-		current_dict[self.end] = self.end
-
-	def search(self, word):
-		current_dict = self.root
-		for letter in word:
-			if letter in current_dict:
-				return False
-			current_dict = current_dict[letter]
-		if self.end in current_dict:
-			return True
-		return False
-
-	def get(self):
-		return self.root
-
 class Container:
 	def __init__(self):
-		self.list = []
+		self.dict = {}
 
 	def populate(self, word_gen):
 		for word in word_gen:
-			if word not in self.list:
-				self.list.append(word)
+			if word not in self.dict:
+				self.dict[word] = True
 
 	def include(self, word_gen):
-		new_list = []
+		new_dict = {}
 		for word in word_gen:
-			if word in self.list and word not in new_list:
-				new_list.append(word)
-		self.list = new_list
+			if word in self.dict:
+				new_dict[word] = True
+		self.dict = new_dict
 
 	def get(self, sort=False):
-		if sort: self.list.sort(key=len)
-		return self.list
+		common_words = list(self.dict)
+		if sort: common_words.sort(key=len)
+		return common_words
 
 	def stats(self):
-		LOG.write('Number of words: %d' % len(self.list))
+		LOG.write('Number of words: %d' % len(list(self.dict)))
 
 def _scrub(word):
 	# convert to lowercase and remove non-alphanumeric characters
@@ -72,7 +49,8 @@ def read_src(path):
 	# get files
 	files = [os.path.join(path, x) for x in os.listdir(path)]
 	# sort by smallest first (simple way to limit search space)
-	sorted_files = sorted(files, key=os.path.getsize)
+	if smallest:
+		sorted_files = sorted(files, key=os.path.getsize)
 	for file in sorted_files:
 		# read file into data structure
 		with open(os.path.join(path, file), 'r') as f:
@@ -103,14 +81,6 @@ if __name__ == '__main__':
 
 	# get largest word and print
 	common = words.get(sort=True)
-	print(common)
+	# print(common)
 	largest = common[-1]
 	print('Largest common word is: %s' % largest)
-
-	# TRIE TEST
-	# s = 'foo bar baz'
-	# t = Trie()
-	# for word in s:
-	# 	t.insert(word)
-	# # print(t.get())
-	# print(t.search('hello'))
