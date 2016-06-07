@@ -39,11 +39,6 @@ class Trie:
 			current = current[letter]
 		return self.end in current
 
-	def longest(self, word='', node=None):
-		if node is None:
-			node = self.root
-		return self
-
 	def to_list(self, sort=False, end=-1):
 		words = []
 		def _recurse(node, base_word):
@@ -97,7 +92,7 @@ if __name__ == '__main__':
 	print(t)
 
 	print('***LIST***')
-	print(t.get_list(end=0))
+	print(t.to_list(end=0))
 
-	# print('***LONGEST***')
-	# print(t.longest())
+	print('***LONGEST***')
+	print(t.to_list(sort=True)[-1])
