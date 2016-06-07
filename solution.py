@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 
 import argparse, os, re
+from timeit import default_timer as timer
+from trie import Trie
+
+def time(func):
+	def wrapper(*args, **kwargs):
+		start = timer()
+		func(*args, **kwargs)
+		end = timer()
+		print('##TIME(%s): %s##' % (func.__name__, str(end-start)))
+	return wrapper
 
 class Logging:
 	def __init__(self, enable=False):
@@ -12,18 +22,25 @@ class Logging:
 
 class Container:
 	def __init__(self):
+		# self.trie = Trie()
 		self.dict = {}
 
+	@time
 	def populate(self, word_gen):
 		for word in word_gen:
-			if word not in self.dict:
-				self.dict[word] = True
+			# self.trie.add(word)
+			self.dict[word] = 1
 
+	@time
 	def include(self, word_gen):
+		# new_trie = Trie()
 		new_dict = {}
 		for word in word_gen:
+			# if self.trie.search(word):
+				# new_trie.add(word)
 			if word in self.dict:
-				new_dict[word] = True
+				new_dict[word] = None
+		# self.trie = new_trie
 		self.dict = new_dict
 
 	def get(self, sort=False):
@@ -31,8 +48,8 @@ class Container:
 		if sort: common_words.sort(key=len)
 		return common_words
 
-	def stats(self):
-		LOG.write('Number of words: %d' % len(list(self.dict)))
+	def stats(self):pass
+	# 	LOG.write('Number of words: %d' % len(list(self.dict)))
 
 def _scrub(word):
 	# convert to lowercase and remove non-alphanumeric characters
@@ -79,6 +96,7 @@ if __name__ == '__main__':
 	words = read_src(os.path.abspath(args.path))
 
 	# get largest word and print
+	# print(words.trie)
 	common = words.get(sort=True)
 	# print(common)
 	largest = common[-1]
