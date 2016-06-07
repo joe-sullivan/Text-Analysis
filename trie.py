@@ -1,6 +1,6 @@
 class Trie:
 	def __init__(self):
-		self.root = {'':{}}
+		self.root = {}
 		self.parent = '_parent'
 		self.end = '_end'
 
@@ -8,7 +8,7 @@ class Trie:
 		current = self.root
 		for letter in word:
 			if letter not in current:
-				current[letter] = {self.parent: current}
+				current[letter] = {}
 			current = current[letter]
 		if self.end in current:
 			x = current[self.end]
@@ -44,8 +44,24 @@ class Trie:
 			node = self.root
 		return self
 
+	def to_list(self, sort=False, end=-1):
+		words = []
+		def _recurse(node, base_word):
+			for letter in node:
+				word = base_word
+				if letter is self.end:
+					if node[self.end] >= end:
+						words.append(word)
+				else:
+					word += letter
+					_recurse(node[letter], word)
+		_recurse(self.root, '')
+		if sort: words.sort(key=len)
+		return words
+
 	def __str__(self):
-		return str(self.root)
+		import json
+		return json.dumps(self.root, indent=True)
 
 if __name__ == '__main__':
 	t = Trie()
@@ -80,5 +96,8 @@ if __name__ == '__main__':
 		print('has bark')
 	print(t)
 
-	print('***LONGEST***')
-	print(t.longest())
+	print('***LIST***')
+	print(t.get_list(end=0))
+
+	# print('***LONGEST***')
+	# print(t.longest())
