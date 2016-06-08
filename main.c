@@ -78,8 +78,6 @@ void load_dir(char* path, struct Node* trie) {
 		}
 		closedir(d);
 	}
-
-	// return trie;
 }
 
 int main(int argc, char *argv[]) {

@@ -3,7 +3,8 @@ CFLAGS=-c
 
 all: solution clean
 
-debug: CFLAGS += -DDEBUG
+.PHONY: debug
+debug: CFLAGS+=-DDEBUG
 debug: solution
 
 solution: main.o trie.o
@@ -15,8 +16,8 @@ main.o: main.c
 trie.o: trie.h trie.c
 	$(CC) $(CFLAGS) trie.c
 
+.PHONY: clean
 clean:
 	rm -f *.o
-
 cleanall: clean
 	rm -f solution
