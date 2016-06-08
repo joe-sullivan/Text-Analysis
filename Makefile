@@ -1,7 +1,7 @@
 CC=clang
 CFLAGS=-c
 
-all: solution
+all: solution clean
 
 debug: CFLAGS += -DDEBUG
 debug: solution
@@ -16,4 +16,7 @@ trie.o: trie.h trie.c
 	$(CC) $(CFLAGS) trie.c
 
 clean:
-	rm solution *.o
+	rm -f *.o
+
+cleanall: clean
+	rm -f solution
