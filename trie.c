@@ -12,9 +12,8 @@ struct Node *get_node(void) {
 	struct Node *pNode = NULL;
 	pNode = (struct Node*)malloc(sizeof(struct Node));
 	if (pNode) {
-		for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
+		for (int i = 0; i < NUMBER_OF_SOURCES; i++)
 			pNode->is_leaf[i] = false;
-		}
 		for (int i = 0; i < ALPHABET_SIZE; i++)
 			pNode->children[i] = NULL;
 	}
@@ -58,10 +57,7 @@ bool search(struct Node *root, const char *key, int source_id) {
 	return (pCrawl != NULL && pCrawl->is_leaf[source_id]);
 }
 
-char* longest(struct Node *node, char* word, int idx, char* best) {
-	// clear word if best is empty
-	if (idx == 0) memset(word, 0, 256);
-
+void longest(struct Node *node, char* word, int idx, char* best[]) {
 	// if word is new longest then copy to _best_ buffer
 	bool is_leaf = true;
 	for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
@@ -70,8 +66,18 @@ char* longest(struct Node *node, char* word, int idx, char* best) {
 			break;
 		}
 	}
-	if (is_leaf && (idx >= strlen(best))) {
-		strcpy(best, word);
+
+	// find smallest candidate
+	int smallest_id = 0;
+	for (int i = 0; i < NUMBER_OF_COMMON; i++) {
+		if (strlen(best[i]) < strlen(best[smallest_id]))
+			smallest_id = i;
+	}
+
+	// replace smallest with current word
+	if (is_leaf && (idx >= strlen(best[smallest_id]))) {
+		D printf("[%s][%s]\n", best[smallest_id], word);
+		strcpy(best[smallest_id], word);
 	}
 
 	// iterate over children
@@ -86,6 +92,13 @@ char* longest(struct Node *node, char* word, int idx, char* best) {
 		// clear current character for next iteration
 		word[idx] = 0;
 	}
+}
 
-	return best;
+void cleanup(struct Node *node) {
+	for (int i = 0; i < ALPHABET_SIZE; i++) {
+		struct Node *child = node->children[i];
+		if (child)
+			cleanup(child);
+	}
+	free(node);
 }

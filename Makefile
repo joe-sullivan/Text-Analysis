@@ -1,4 +1,4 @@
-CC=clang
+CC=gcc
 CFLAGS=-c
 
 all: solution clean
