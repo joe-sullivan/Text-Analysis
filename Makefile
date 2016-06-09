@@ -7,6 +7,10 @@ all: solution clean
 debug: CFLAGS+=-DDEBUG
 debug: solution
 
+.PHONY: profile
+profile: CC+= -pg
+profile: solution
+
 solution: main.o trie.o
 	$(CC) main.o trie.o -o solution
 
