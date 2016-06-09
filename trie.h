@@ -1,5 +1,8 @@
+#include <pthread.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef DEBUG
 # define D if(1)
@@ -13,6 +16,7 @@
 #define NUMBER_OF_COMMON (5)
 
 struct Node {
+	pthread_mutex_t mutex;
 	struct Node *children[ALPHABET_SIZE];
 	bool is_leaf[NUMBER_OF_SOURCES];
 };

@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 #include "trie.h"
 
 #define CHAR_TO_INDEX(c) ((int)c - (int)'a')
@@ -12,6 +8,7 @@ struct Node *get_node(void) {
 	struct Node *pNode = NULL;
 	pNode = (struct Node*)malloc(sizeof(struct Node));
 	if (pNode) {
+		pthread_mutex_init(&pNode->mutex, NULL);
 		for (int i = 0; i < NUMBER_OF_SOURCES; i++)
 			pNode->is_leaf[i] = false;
 		for (int i = 0; i < ALPHABET_SIZE; i++)
@@ -26,16 +23,23 @@ void insert(struct Node *root, const char *key, int source_id) {
 	int index;
 
 	struct Node *pCrawl = root;
+	pthread_mutex_t mutex = pCrawl->mutex;
+	// pthread_mutex_lock(&mutex);
 
 	for (level = 0; level < length; level++) {
+		mutex = pCrawl->mutex;
+		pthread_mutex_lock(&mutex);
 		index = CHAR_TO_INDEX(key[level]);
 		if (!pCrawl->children[index])
 			pCrawl->children[index] = get_node();
 		pCrawl = pCrawl->children[index];
+		// pthread_mutex_unlock(&mutex);
 	}
 
 	// mark last node as leaf
 	pCrawl->is_leaf[source_id] = true;
+	mutex = pCrawl->mutex;
+	pthread_mutex_unlock(&mutex);
 }
 
 // Returns true if key presents in trie, else false

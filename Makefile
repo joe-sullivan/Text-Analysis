@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-c
+LIBRARIES=-lpthread
 
 all: solution clean
 
@@ -7,8 +8,12 @@ all: solution clean
 debug: CFLAGS+=-DDEBUG
 debug: solution
 
+.PHONY: profile
+profile: CC+= -pg
+profile: solution
+
 solution: main.o trie.o
-	$(CC) main.o trie.o -o solution
+	$(CC) main.o trie.o -o solution $(LIBRARIES)
 
 main.o: main.c
 	$(CC) $(CFLAGS) main.c
@@ -18,6 +23,6 @@ trie.o: trie.h trie.c
 
 .PHONY: clean
 clean:
-	rm -f *.o
+	rm -f *.o gmon.out prof_output
 cleanall: clean
 	rm -f solution
