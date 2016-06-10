@@ -6,29 +6,6 @@
 #include <string.h>
 #include "trie.h"
 
-bool is_end(char c) {
-	switch(c) {
-		case ' ':
-		case '\n':
-		case '\t':
-		case '.':
-		case '!':
-		case '?':
-		case ',':
-		case ';':
-		case '/':
-		case '|':
-		case '(':
-		case ')':
-		case '[':
-		case ']':
-		case '-':
-			return true;
-		default:
-			return false;
-	}
-}
-
 void load_file(char* path, struct Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
 	int c;
@@ -39,15 +16,12 @@ void load_file(char* path, struct Node* trie, int num) {
 	if (file) {
 		int i = 0;
 		while ((c = getc(file)) != EOF) {
-			if (!is_end(c)) {
-				if (isalpha(c))
+			if (isalpha(c) || c == '\'') {
 					word[i++] = tolower(c);
 			} else { // save word and clear buffer
 				word[i] = 0; // null terminator
-				if (i > 0) // only store if word is not empty
-					insert(trie, word, num);
-				memset(word, 0, MAX_WORD_SIZE);
 				i = 0;
+				insert(trie, word, num);
 			}
 		}
 		fclose(file);
@@ -93,8 +67,7 @@ int main(int argc, char *argv[]) {
 		longest_common_words[i] = (char*)calloc(MAX_WORD_SIZE, sizeof(char));
 	longest(trie, buffer1, 0, longest_common_words);
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		printf("%s ", longest_common_words[i]);
-	printf("\n");
+		printf("%s\n", longest_common_words[i]);
 
 	// cleanup
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)

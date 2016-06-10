@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include "trie.h"
 
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-#define INDEX_TO_CHAR(i) ((char)i + 'a')
+#define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - (int)'a')
+#define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
 
 // Returns new trie node (initialized to NULLs)
 struct Node *get_node(void) {

@@ -7,10 +7,10 @@
 # define D if(0)
 #endif
 
-#define ALPHABET_SIZE (26)
-#define MAX_WORD_SIZE (256)
-#define NUMBER_OF_SOURCES (20)
-#define NUMBER_OF_COMMON (5)
+#define ALPHABET_SIZE 27
+#define MAX_WORD_SIZE 256
+#define NUMBER_OF_SOURCES 20
+#define NUMBER_OF_COMMON 5
 
 struct Node {
 	struct Node *children[ALPHABET_SIZE];
