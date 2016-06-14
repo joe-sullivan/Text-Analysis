@@ -12,32 +12,8 @@ struct Node* trie;
 
 struct arg_struct {
 	char* path;
-	struct Node* trie;
 	int num;
 };
-
-bool is_end(char c) {
-	switch(c) {
-		case ' ':
-		case '\n':
-		case '\t':
-		case '.':
-		case '!':
-		case '?':
-		case ',':
-		case ';':
-		case '/':
-		case '|':
-		case '(':
-		case ')':
-		case '[':
-		case ']':
-		case '-':
-			return true;
-		default:
-			return false;
-	}
-}
 
 void* load_file(void *vargp) {
 	struct arg_struct *args = (struct arg_struct *)vargp;
@@ -53,15 +29,14 @@ void* load_file(void *vargp) {
 	if (file) {
 		int i = 0;
 		while ((c = getc(file)) != EOF) {
-			if (!is_end(c)) {
-				if (isalpha(c))
+			if (isalpha(c) || c == '\'') {
 					word[i++] = tolower(c);
 			} else { // save word and clear buffer
 				word[i] = 0; // null terminator
 				if (i > 0) { // only store if word is not empty
-					// pthread_mutex_lock(&mutex);
+					pthread_mutex_lock(&mutex);
 					insert(trie, word, num);
-					// pthread_mutex_unlock(&mutex);
+					pthread_mutex_unlock(&mutex);
 				}
 				memset(word, 0, MAX_WORD_SIZE);
 				i = 0;
@@ -69,6 +44,9 @@ void* load_file(void *vargp) {
 		}
 		fclose(file);
 	}
+	D printf("Finished loading file[%d]: %s\n", num, path);
+	free(path);
+	pthread_exit(NULL);
 }
 
 void load_dir(char* path) {
@@ -78,7 +56,7 @@ void load_dir(char* path) {
 	struct dirent *dir;
 	d = opendir(path);
 	if (d) {
-		char fullpath[1024];
+		char* fullpath;
 		int id = 0; // source text id
 		pthread_t tid[NUMBER_OF_SOURCES];
 
@@ -87,7 +65,7 @@ void load_dir(char* path) {
 			char* ext = strchr(dir->d_name, '.');
 			if (ext && !strcmp(ext, ".txt")) { // files with .txt extention
 				// build full file path
-				memset(fullpath, 0, 1024);
+				fullpath = (char*)calloc(1024, sizeof(char));
 				strcat(fullpath, path);
 				strcat(fullpath, "/"); // ensure slash
 				strcat(fullpath, dir->d_name);
@@ -107,13 +85,7 @@ void load_dir(char* path) {
 	}
 }
 
-int main(int argc, char *argv[]) {
-	// initialize structure to hold words
-	trie = get_node();
-	// use first argument as path
-	load_dir(argv[1]);
-
-	// retrieve longest common word
+void lcw(struct Node* trie) {
 	D printf("Getting longest common words...\n");
 	char buffer1[MAX_WORD_SIZE];
 	char* longest_common_words[NUMBER_OF_COMMON];
@@ -121,12 +93,24 @@ int main(int argc, char *argv[]) {
 		longest_common_words[i] = (char*)calloc(MAX_WORD_SIZE, sizeof(char));
 	longest(trie, buffer1, 0, longest_common_words);
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		printf("%s ", longest_common_words[i]);
+		printf("%s\n", longest_common_words[i]);
 	printf("\n");
 
 	// cleanup
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
 		free(longest_common_words[i]);
+}
+
+int main(int argc, char *argv[]) {
+	// initialize structure to hold words
+	trie = get_node();
+	// use first argument as path
+	load_dir(argv[1]);
+
+	// retrieve longest common word
+	lcw(trie);
+
+	// cleanup
 	cleanup(trie);
 
 	return 0;

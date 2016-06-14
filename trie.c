@@ -1,14 +1,13 @@
 #include "trie.h"
 
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-#define INDEX_TO_CHAR(i) ((char)i + 'a')
+#define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - (int)'a')
+#define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
 
-// Returns new trie node (initialized to NULLs)
-struct Node *get_node(void) {
+// returns new trie node (initialized to NULL)
+struct Node *get_node() {
 	struct Node *pNode = NULL;
 	pNode = (struct Node*)malloc(sizeof(struct Node));
 	if (pNode) {
-		pthread_mutex_init(&pNode->mutex, NULL);
 		for (int i = 0; i < NUMBER_OF_SOURCES; i++)
 			pNode->is_leaf[i] = false;
 		for (int i = 0; i < ALPHABET_SIZE; i++)
@@ -18,31 +17,23 @@ struct Node *get_node(void) {
 }
 
 void insert(struct Node *root, const char *key, int source_id) {
-	int level;
-	int length = strlen(key);
 	int index;
+	int level = 0;
+	int length = strlen(key);
 
 	struct Node *pCrawl = root;
-	pthread_mutex_t mutex = pCrawl->mutex;
-	// pthread_mutex_lock(&mutex);
-
 	for (level = 0; level < length; level++) {
-		mutex = pCrawl->mutex;
-		pthread_mutex_lock(&mutex);
 		index = CHAR_TO_INDEX(key[level]);
 		if (!pCrawl->children[index])
 			pCrawl->children[index] = get_node();
 		pCrawl = pCrawl->children[index];
-		// pthread_mutex_unlock(&mutex);
 	}
 
 	// mark last node as leaf
 	pCrawl->is_leaf[source_id] = true;
-	mutex = pCrawl->mutex;
-	pthread_mutex_unlock(&mutex);
 }
 
-// Returns true if key presents in trie, else false
+// returns true if key presents in trie (for all sources), else false
 bool search(struct Node *root, const char *key, int source_id) {
 	int level;
 	int length = strlen(key);
