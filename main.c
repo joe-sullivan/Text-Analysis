@@ -104,14 +104,15 @@ void lcw(struct Node* trie) {
 int main(int argc, char *argv[]) {
 	// initialize structure to hold words
 	trie = get_node();
+
 	// use first argument as path
 	load_dir(argv[1]);
 
 	// retrieve longest common word
 	lcw(trie);
 
-	// cleanup
-	cleanup(trie);
+	// cleanup (ignored for extra speed)
+	// cleanup(trie);
 
 	return 0;
 }
