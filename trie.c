@@ -58,6 +58,9 @@ bool search(struct Node *root, const char *key, int source_id) {
 }
 
 void longest(struct Node *node, char* word, int idx, char* best[]) {
+	// clear buffer if starting new word
+	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
+
 	// if word is new longest then copy to _best_ buffer
 	bool is_leaf = true;
 	for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
