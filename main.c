@@ -7,6 +7,8 @@
 #include <string.h>
 #include "trie.h"
 
+#define BUFFER_SIZE 16*1024
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 struct Node* trie;
 
@@ -19,31 +21,34 @@ void* load_file(void *vargp) {
 	struct arg_struct *args = (struct arg_struct *)vargp;
 	char* path = args->path;
 	int num = args->num;
-
-	D printf("Loading file[%d]: %s\n", num, path);
-	int c;
-	char word[MAX_WORD_SIZE];
+	D printf("Loading file: %s\n", path);
 
 	FILE *file;
 	file = fopen(path, "r");
-	if (file) {
-		int i = 0;
-		while ((c = getc(file)) != EOF) {
-			if (isalpha(c) || c == '\'') {
-					word[i++] = tolower(c);
-			} else { // save word and clear buffer
-				word[i] = 0; // null terminator
-				if (i > 0) { // only store if word is not empty
+	if(file) {
+		int idx = 0;
+		char word[MAX_WORD_SIZE] = {0};
+		char buf[BUFFER_SIZE] = {0};
+
+		// read book into buffer
+		while(fread(buf, sizeof(char), BUFFER_SIZE, file)) {
+			// parse buffer
+			for (int i = 0; i < BUFFER_SIZE; i++) {
+				char c = buf[i];
+				if (isalpha(c) || c == '\'') {
+					word[idx++] = tolower(c);
+				} else { // save word and clear buffer
+					word[idx] = 0; // null terminator
+					idx = 0;
 					pthread_mutex_lock(&mutex);
 					insert(trie, word, num);
 					pthread_mutex_unlock(&mutex);
+					memset(word, 0, MAX_WORD_SIZE);
 				}
-				memset(word, 0, MAX_WORD_SIZE);
-				i = 0;
 			}
 		}
-		fclose(file);
 	}
+	fclose(file);
 	D printf("Finished loading file[%d]: %s\n", num, path);
 	free(path);
 	pthread_exit(NULL);
