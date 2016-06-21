@@ -6,7 +6,7 @@
 #include <string.h>
 #include "trie.h"
 
-#define BUFFER_SIZE 16*024
+#define BUFFER_SIZE 16*1024
 
 void load_file(char *path, struct Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
@@ -29,10 +29,13 @@ void load_file(char *path, struct Node* trie, int num) {
 					word[idx] = 0; // null terminator
 					idx = 0;
 					insert(trie, word, num);
+					memset(word, 0, MAX_WORD_SIZE);
 				}
 			}
 		}
 	}
+	fclose(file);
+	D printf("Finished loading file[%d]: %s\n", num, path);
 }
 
 void load_dir(char* path, struct Node* trie) {
