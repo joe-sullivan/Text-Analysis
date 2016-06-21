@@ -6,25 +6,32 @@
 #include <string.h>
 #include "trie.h"
 
-void load_file(char* path, struct Node* trie, int num) {
+#define BUFFER_SIZE 16*024
+
+void load_file(char *path, struct Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
-	int c;
-	char word[MAX_WORD_SIZE];
 
 	FILE *file;
 	file = fopen(path, "r");
-	if (file) {
-		int i = 0;
-		while ((c = getc(file)) != EOF) {
-			if (isalpha(c) || c == '\'') {
-					word[i++] = tolower(c);
-			} else { // save word and clear buffer
-				word[i] = 0; // null terminator
-				i = 0;
-				insert(trie, word, num);
+	if(file) {
+		int idx = 0;
+		char word[MAX_WORD_SIZE] = {0};
+		char buf[BUFFER_SIZE] = {0};
+
+		// read book into buffer
+		while(fread(buf, sizeof(char), BUFFER_SIZE, file)) {
+			// parse buffer
+			for (int i = 0; i < BUFFER_SIZE; i++) {
+				char c = buf[i];
+				if (isalpha(c) || c == '\'') {
+					word[idx++] = tolower(c);
+				} else { // save word and clear buffer
+					word[idx] = 0; // null terminator
+					idx = 0;
+					insert(trie, word, num);
+				}
 			}
 		}
-		fclose(file);
 	}
 }
 
