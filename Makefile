@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c
+CFLAGS=-c -std=c99 -O3
 
 all: solution clean
 
