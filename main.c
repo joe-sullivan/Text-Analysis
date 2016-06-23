@@ -47,7 +47,7 @@ void load_dir(char* path, struct Node* trie) {
 	if (d) {
 		char fullpath[1024];
 		int id = 0; // source text id
-		while ((dir = readdir(d)) != NULL) {
+		while (id < NUMBER_OF_SOURCES && (dir = readdir(d)) != NULL) {
 			char* ext = strchr(dir->d_name, '.');
 			if (ext && !strcmp(ext, ".txt")) { // files with .txt extention
 				// build full file path
