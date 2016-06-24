@@ -13,7 +13,7 @@ trie.o: trie.h trie.c
 	$(CC) $(CFLAGS) trie.c
 
 .PHONY: debug
-debug: CFLAGS+=-DDEBUG
+debug: CFLAGS+=-DDEBUG -g
 debug: solution
 
 .PHONY: profile
