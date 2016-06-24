@@ -8,25 +8,26 @@
 
 #define BUFFER_SIZE 16*1024
 
-void load_file(char *path, struct Node* trie, int num) {
+void load_file(char* path, Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
 
-	FILE *file = fopen(path, "r");
+	FILE* file = fopen(path, "r");
 	if (file) {
-		int idx = 0;
-		char word[MAX_WORD_SIZE] = {0};
-		char buf[BUFFER_SIZE] = {0};
+		String string;
+		string.length = 0;
+		char buf[BUFFER_SIZE];
 
 		// read book into buffer
-		while(fread(buf, sizeof(char), BUFFER_SIZE, file)) {
+		int bytes_read;
+		while(bytes_read = fread(buf, sizeof(char), BUFFER_SIZE, file)) {
 			// parse buffer
-			for (int i = 0; i < BUFFER_SIZE; i++) {
+			for (int i = 0; i < bytes_read; i++) {
 				char c = buf[i];
 				if (isalpha(c) || c == '\'') {
-					word[idx++] = tolower(c);
+					string.data[string.length++] = tolower(c);
 				} else { // save word and clear buffer
-					insert(trie, word, idx, num);
-					idx = 0;
+					insert(trie, &string, num);
+					string.length = 0;
 				}
 			}
 		}
@@ -35,10 +36,10 @@ void load_file(char *path, struct Node* trie, int num) {
 	D printf("Finished loading file[%d]: %s\n", num, path);
 }
 
-void load_dir(char* path, struct Node* trie) {
+void load_dir(char* path, Node* trie) {
 	D printf("Looking at directory: %s\n", path);
 
-	DIR *d;
+	DIR* d;
 	struct dirent *dir;
 	d = opendir(path);
 	if (d) {
@@ -61,9 +62,9 @@ void load_dir(char* path, struct Node* trie) {
 	}
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	// initialize structure to hold words
-	struct Node* trie = get_node();
+	Node* trie = get_node();
 	// use first argument as path
 	load_dir(argv[1], trie);
 

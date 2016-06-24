@@ -8,47 +8,47 @@
 #define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
 
 // Returns new empty trie node
-struct Node *get_node() {
-	return (struct Node*)calloc(1, sizeof(struct Node));
+Node* get_node() {
+	return (Node*)calloc(1, sizeof(Node));
 }
 
-void insert(struct Node *root, const char *key, int length, int source_id) {
+void insert(Node* root, String* string, int source_id) {
 	int level;
 	int index;
 
-	struct Node *pCrawl = root;
+	Node *crawl = root;
 
-	for (level = 0; level < length; level++) {
-		index = CHAR_TO_INDEX(key[level]);
-		if (!pCrawl->children[index])
-			pCrawl->children[index] = get_node();
-		pCrawl = pCrawl->children[index];
+	for (level = 0; level < string->length; level++) {
+		index = CHAR_TO_INDEX(string->data[level]);
+		if (!crawl->children[index])
+			crawl->children[index] = get_node();
+		crawl = crawl->children[index];
 	}
 
 	// mark last node as leaf
-	pCrawl->is_leaf[source_id] = true;
+	crawl->is_leaf[source_id] = true;
 }
 
 // Returns true if key presents in trie, else false
-bool search(struct Node *root, const char *key, int source_id) {
+bool search(Node* root, const char* key, int source_id) {
 	int level;
 	int length = strlen(key);
 	int index;
-	struct Node *pCrawl = root;
+	Node* crawl = root;
 
 	for (level = 0; level < length; level++) {
 		index = CHAR_TO_INDEX(key[level]);
 
-		if (!pCrawl->children[index])
+		if (!crawl->children[index])
 			return false;
 
-		pCrawl = pCrawl->children[index];
+		crawl = crawl->children[index];
 	}
 
-	return (pCrawl != NULL && pCrawl->is_leaf[source_id]);
+	return (crawl != NULL && crawl->is_leaf[source_id]);
 }
 
-void longest(struct Node *node, char* word, int idx, char* best[]) {
+void longest(Node* node, char* word, int idx, char* best[]) {
 	// clear buffer if starting new word
 	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
 
@@ -79,7 +79,7 @@ void longest(struct Node *node, char* word, int idx, char* best[]) {
 		// store character in
 		word[idx] = INDEX_TO_CHAR(i);
 
-		struct Node *child = node->children[i];
+		Node* child = node->children[i];
 		if (child) // continue to search branch
 			longest(child, word, idx+1, best);
 
@@ -88,9 +88,9 @@ void longest(struct Node *node, char* word, int idx, char* best[]) {
 	}
 }
 
-void cleanup(struct Node *node) {
+void cleanup(Node* node) {
 	for (int i = 0; i < ALPHABET_SIZE; i++) {
-		struct Node *child = node->children[i];
+		Node* child = node->children[i];
 		if (child)
 			cleanup(child);
 	}
