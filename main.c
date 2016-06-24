@@ -19,7 +19,7 @@ void load_file(char* path, Node* trie, int num) {
 
 		// read book into buffer
 		int bytes_read;
-		while(bytes_read = fread(buf, sizeof(char), BUFFER_SIZE, file)) {
+		while((bytes_read = fread(buf, sizeof(char), BUFFER_SIZE, file))) {
 			// parse buffer
 			for (int i = 0; i < bytes_read; i++) {
 				char c = buf[i];
