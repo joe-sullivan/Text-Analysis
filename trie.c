@@ -7,22 +7,13 @@
 #define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - (int)'a')
 #define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
 
-// Returns new trie node (initialized to NULLs)
-struct Node *get_node(void) {
-	struct Node *pNode = NULL;
-	pNode = (struct Node*)malloc(sizeof(struct Node));
-	if (pNode) {
-		for (int i = 0; i < NUMBER_OF_SOURCES; i++)
-			pNode->is_leaf[i] = false;
-		for (int i = 0; i < ALPHABET_SIZE; i++)
-			pNode->children[i] = NULL;
-	}
-	return pNode;
+// Returns new empty trie node
+struct Node *get_node() {
+	return (struct Node*)calloc(1, sizeof(struct Node));
 }
 
-void insert(struct Node *root, const char *key, int source_id) {
+void insert(struct Node *root, const char *key, int length, int source_id) {
 	int level;
-	int length = strlen(key);
 	int index;
 
 	struct Node *pCrawl = root;
@@ -61,7 +52,7 @@ void longest(struct Node *node, char* word, int idx, char* best[]) {
 	// clear buffer if starting new word
 	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
 
-	// if word is new longest then copy to _best_ buffer
+	// set is_leaf
 	bool is_leaf = true;
 	for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
 		if (!node->is_leaf[i]) {

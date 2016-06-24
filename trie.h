@@ -8,7 +8,7 @@
 #endif
 
 #define ALPHABET_SIZE 27
-#define MAX_WORD_SIZE 256
+#define MAX_WORD_SIZE 128
 #define NUMBER_OF_SOURCES 20
 #define NUMBER_OF_COMMON 5
 
@@ -18,7 +18,7 @@ struct Node {
 };
 
 struct Node *get_node(void);
-void insert(struct Node *root, const char *key, int source_id);
+void insert(struct Node *root, const char *key, int length, int source_id);
 bool search(struct Node *root, const char *key, int source_id);
 void longest(struct Node *node, char* word, int idx, char* best[]);
 void cleanup(struct Node *node);

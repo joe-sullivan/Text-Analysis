@@ -11,9 +11,8 @@
 void load_file(char *path, struct Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
 
-	FILE *file;
-	file = fopen(path, "r");
-	if(file) {
+	FILE *file = fopen(path, "r");
+	if (file) {
 		int idx = 0;
 		char word[MAX_WORD_SIZE] = {0};
 		char buf[BUFFER_SIZE] = {0};
@@ -26,10 +25,8 @@ void load_file(char *path, struct Node* trie, int num) {
 				if (isalpha(c) || c == '\'') {
 					word[idx++] = tolower(c);
 				} else { // save word and clear buffer
-					word[idx] = 0; // null terminator
+					insert(trie, word, idx, num);
 					idx = 0;
-					insert(trie, word, num);
-					memset(word, 0, MAX_WORD_SIZE);
 				}
 			}
 		}
