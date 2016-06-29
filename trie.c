@@ -48,7 +48,7 @@ bool search(Node* root, const char* key, int source_id) {
 	return (crawl != NULL && crawl->is_leaf[source_id]);
 }
 
-void longest(Node* node, char* word, int idx, char* best[]) {
+int _longest(Node* node, char* word, int idx, char* best[], int max_idx) {
 	// clear buffer if starting new word
 	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
 
@@ -67,6 +67,7 @@ void longest(Node* node, char* word, int idx, char* best[]) {
 		if (strlen(best[i]) < strlen(best[smallest_id]))
 			smallest_id = i;
 	}
+	if (smallest_id > max_idx) max_idx = smallest_id;
 
 	// replace smallest with current word
 	if (is_leaf && (idx >= strlen(best[smallest_id]))) {
@@ -81,11 +82,18 @@ void longest(Node* node, char* word, int idx, char* best[]) {
 
 		Node* child = node->children[i];
 		if (child) // continue to search branch
-			longest(child, word, idx+1, best);
+			max_idx = _longest(child, word, idx+1, best, max_idx);
 
 		// clear current character for next iteration
 		word[idx] = 0;
 	}
+	return max_idx;
+}
+
+bool longest(Node* node, char* best[]) {
+	char buffer[MAX_WORD_SIZE];
+	int size = _longest(node, buffer, 0, best, 0);
+	return size == (NUMBER_OF_COMMON-1);
 }
 
 void cleanup(Node* node) {

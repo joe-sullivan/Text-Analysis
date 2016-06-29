@@ -8,6 +8,8 @@
 
 #define BUFFER_SIZE 16*1024
 
+int _guess = 10;
+
 void load_file(char* path, Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
 
@@ -26,7 +28,8 @@ void load_file(char* path, Node* trie, int num) {
 				if (isalpha(c) || c == '\'') {
 					string.data[string.length++] = tolower(c);
 				} else { // save word and clear buffer
-					insert(trie, &string, num);
+					if (string.length > _guess)
+						insert(trie, &string, num);
 					string.length = 0;
 				}
 			}
@@ -62,18 +65,17 @@ void load_dir(char* path, Node* trie) {
 	}
 }
 
-int main(int argc, char* argv[]) {
+bool doit(char* path) {
 	// initialize structure to hold words
 	Node* trie = get_node();
 	// use first argument as path
-	load_dir(argv[1], trie);
+	load_dir(path, trie);
 
 	// retrieve longest common word
-	char buffer1[MAX_WORD_SIZE];
 	char* longest_common_words[NUMBER_OF_COMMON];
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
 		longest_common_words[i] = (char*)calloc(MAX_WORD_SIZE, sizeof(char));
-	longest(trie, buffer1, 0, longest_common_words);
+	if (!longest(trie, longest_common_words)) return false;
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
 		printf("%s\n", longest_common_words[i]);
 
@@ -82,5 +84,10 @@ int main(int argc, char* argv[]) {
 		free(longest_common_words[i]);
 	cleanup(trie);
 
+	return true;
+}
+
+int main(int argc, char* argv[]) {
+	while(!doit(argv[1])) _guess/=2;
 	return 0;
 }

@@ -22,5 +22,5 @@ typedef struct _string {
 Node* get_node();
 void insert(Node* root, String* string, int source_id);
 bool search(Node* root, const char* key, int source_id);
-void longest(Node* node, char* word, int idx, char* best[]);
+bool longest(Node* node, char* best[]);
 void cleanup(Node* node);
