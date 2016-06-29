@@ -13,8 +13,8 @@ char inalpha(char c) {
 	// edge cases
 	if (c == '\'') return c;
 
-	// xor char with 0x00100000 to convert to lower
-	char ret = c ^ 32;
+	// or char with 0x00100000 to convert to lower
+	char ret = c | 32;
 	// check if ret is valid
 	if (ret >= 'a' && ret <= 'z')
 		return ret;
@@ -39,7 +39,7 @@ void load_file(char* path, Node* trie, int num) {
 				if ((c = inalpha(buf[i]))) {
 					// add character to string and increment length
 					string.data[string.length++] = c;
-				} else if (string.length > 0){ // save word and clear buffer
+				} else if (string.length > 0) { // save word and clear buffer
 					insert(trie, &string, num);
 					string.length = 0;
 				}
