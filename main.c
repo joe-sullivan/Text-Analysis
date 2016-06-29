@@ -10,7 +10,19 @@
 #define BUFFER_SIZE 16*1024
 
 int _pguess = INT_MAX; // ensure REALLY large words are included
-int _guess = 10;
+int _guess = 0;
+
+char inalpha(char c) {
+	// edge cases
+	if (c == '/') return c;
+
+	// xor char with 0x00100000 to convert to lower
+	char ret = c ^ 32;
+	// check if ret is valid
+	if (ret >= 'a' && ret <= 'z')
+		return ret;
+	return 0;
+}
 
 void load_file(char* path, Node* trie, int num) {
 	D printf("Loading file: %s\n", path);
@@ -26,9 +38,9 @@ void load_file(char* path, Node* trie, int num) {
 		while((bytes_read = fread(buf, sizeof(char), BUFFER_SIZE, file))) {
 			// parse buffer
 			for (int i = 0; i < bytes_read; i++) {
-				char c = buf[i];
-				if (isalpha(c) || c == '\'') {
-					string.data[string.length++] = tolower(c);
+				char c;
+				if (c = inalpha(buf[i])) {
+					string.data[string.length++] = c;
 				} else { // save word and clear buffer
 					// ignore if word is < guess and smaller than previous guess
 					if (string.length > _guess && string.length < _pguess)
