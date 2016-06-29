@@ -48,7 +48,7 @@ bool search(Node* root, const char* key, int source_id) {
 	return (crawl != NULL && crawl->is_leaf[source_id]);
 }
 
-int _longest(Node* node, char* word, int idx, char* best[], int max_idx) {
+int _longest(Node* node, char* word, int idx, char best[][MAX_WORD_SIZE], int max_idx) {
 	// clear buffer if starting new word
 	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
 
@@ -90,7 +90,7 @@ int _longest(Node* node, char* word, int idx, char* best[], int max_idx) {
 	return max_idx;
 }
 
-bool longest(Node* node, char* best[]) {
+bool longest(Node* node, char best[][MAX_WORD_SIZE]) {
 	char buffer[MAX_WORD_SIZE];
 	int size = _longest(node, buffer, 0, best, 0);
 	return size == (NUMBER_OF_COMMON-1);
