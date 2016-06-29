@@ -9,12 +9,9 @@
 
 #define BUFFER_SIZE 16*1024
 
-int _pguess = INT_MAX; // ensure REALLY large words are included
-int _guess = 10;
-
 char inalpha(char c) {
 	// edge cases
-	if (c == '/') return c;
+	if (c == '\'') return c;
 
 	// xor char with 0x00100000 to convert to lower
 	char ret = c ^ 32;
@@ -40,11 +37,10 @@ void load_file(char* path, Node* trie, int num) {
 			for (int i = 0; i < bytes_read; i++) {
 				char c;
 				if ((c = inalpha(buf[i]))) {
+					// add character to string and increment length
 					string.data[string.length++] = c;
-				} else { // save word and clear buffer
-					// ignore if word is < guess and smaller than previous guess
-					if (string.length > _guess && string.length < _pguess)
-						insert(trie, &string, num);
+				} else if (string.length > 0){ // save word and clear buffer
+					insert(trie, &string, num);
 					string.length = 0;
 				}
 			}
@@ -86,9 +82,12 @@ int compare(const void* a, const void* b) {
 	return (len_a > len_b) - (len_a < len_b);
 }
 
-bool doit(Node* trie, char* path) {
+int main(int argc, char* argv[]) {
+	// initialize structure to hold words
+	Node* trie = get_node();
+
 	// use first argument as path
-	load_dir(path, trie);
+	load_dir(argv[1], trie);
 
 	// setup array to hold the longest common words
 	String longest_common_words[NUMBER_OF_COMMON];
@@ -96,7 +95,7 @@ bool doit(Node* trie, char* path) {
 		longest_common_words[i].length = 0;
 
 	// find longest common words
-	if (!longest(trie, longest_common_words)) return false;
+	longest(trie, longest_common_words);
 
 	// sort
 	D qsort(longest_common_words, NUMBER_OF_COMMON, sizeof(String), compare);
@@ -108,16 +107,5 @@ bool doit(Node* trie, char* path) {
 	// cleanup
 	D cleanup(trie);
 
-	return true;
-}
-
-int main(int argc, char* argv[]) {
-	// initialize structure to hold words
-	Node* trie = get_node();
-	while(!doit(trie, argv[1]) && _guess) {
-		_pguess = _guess; // save previous guess
-		_guess /= 2; // decrease guess size
-		D printf("Lowering guess from %d to %d\n", _pguess, _guess);
-	}
 	return 0;
 }
