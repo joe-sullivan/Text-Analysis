@@ -68,23 +68,30 @@ void load_dir(char* path, Node* trie) {
 	}
 }
 
-int compare(const void * a, const void * b) {
-	size_t fa = strlen(a);
-	size_t fb = strlen(b);
-	return (fa > fb) - (fa < fb);
+int compare(const void* a, const void* b) {
+	int len_a = ((String*)a)->length;
+	int len_b = ((String*)b)->length;
+	return (len_a > len_b) - (len_a < len_b);
 }
 
 bool doit(Node* trie, char* path) {
 	// use first argument as path
 	load_dir(path, trie);
 
-	// retrieve longest common word
-	char longest_common_words[NUMBER_OF_COMMON][MAX_WORD_SIZE];
-	memset(longest_common_words, 0, NUMBER_OF_COMMON*MAX_WORD_SIZE);
-	if (!longest(trie, longest_common_words)) return false;
-	D qsort(longest_common_words, NUMBER_OF_COMMON, MAX_WORD_SIZE, compare);
+	// setup array to hold the longest common words
+	String longest_common_words[NUMBER_OF_COMMON];
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		printf("%s\n", longest_common_words[i]);
+		longest_common_words[i].length = 0;
+
+	// find longest common words
+	if (!longest(trie, longest_common_words)) return false;
+
+	// sort
+	D qsort(longest_common_words, NUMBER_OF_COMMON, sizeof(String), compare);
+
+	// print them
+	for (int i = 0; i < NUMBER_OF_COMMON; i++)
+		printf("%s\n", longest_common_words[i].data);
 
 	// cleanup
 	D cleanup(trie);
@@ -98,7 +105,7 @@ int main(int argc, char* argv[]) {
 	while(!doit(trie, argv[1]) && _guess) {
 		_pguess = _guess; // save previous guess
 		_guess /= 2; // decrease guess size
-		D printf("Growing from %d to %d\n", _pguess, _guess);
+		D printf("Lowering guess from %d to %d\n", _pguess, _guess);
 	}
 	return 0;
 }

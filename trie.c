@@ -48,10 +48,7 @@ bool search(Node* root, const char* key, int source_id) {
 	return (crawl != NULL && crawl->is_leaf[source_id]);
 }
 
-int _longest(Node* node, char* word, int idx, char best[][MAX_WORD_SIZE], int max_idx) {
-	// clear buffer if starting new word
-	if (idx == 0) memset(word, 0, MAX_WORD_SIZE);
-
+int _longest(Node* node, char* word, int idx, String best[],int max_idx) {
 	// set is_leaf
 	bool is_leaf = true;
 	for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
@@ -64,15 +61,16 @@ int _longest(Node* node, char* word, int idx, char best[][MAX_WORD_SIZE], int ma
 	// find smallest candidate
 	int smallest_id = 0;
 	for (int i = 0; i < NUMBER_OF_COMMON; i++) {
-		if (strlen(best[i]) < strlen(best[smallest_id]))
+		if (best[i].length < best[smallest_id].length)
 			smallest_id = i;
 	}
 	if (smallest_id > max_idx) max_idx = smallest_id;
 
 	// replace smallest with current word
-	if (is_leaf && (idx >= strlen(best[smallest_id]))) {
-		D printf("[%s][%s]\n", best[smallest_id], word);
-		strcpy(best[smallest_id], word);
+	if (is_leaf && (idx >= best[smallest_id].length)) {
+		D printf("[%s][%s]\n", best[smallest_id].data, word);
+		strcpy(best[smallest_id].data, word);
+		best[smallest_id].length = idx;
 	}
 
 	// iterate over children
@@ -90,7 +88,7 @@ int _longest(Node* node, char* word, int idx, char best[][MAX_WORD_SIZE], int ma
 	return max_idx;
 }
 
-bool longest(Node* node, char best[][MAX_WORD_SIZE]) {
+bool longest(Node* node, String best[]) {
 	char buffer[MAX_WORD_SIZE];
 	int size = _longest(node, buffer, 0, best, 0);
 	return size == (NUMBER_OF_COMMON-1);

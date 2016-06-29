@@ -1,7 +1,8 @@
 CC=gcc
 CFLAGS=-c -std=c99 -O3
 
-all: solution clean
+.PHONY: all
+all: solution
 
 solution: main.o trie.o
 	$(CC) main.o trie.o -o solution
@@ -12,16 +13,21 @@ main.o: main.c
 trie.o: trie.h trie.c
 	$(CC) $(CFLAGS) trie.c
 
+.PHONY: rebuild
+rebuild: cleanall solution clean
+
 .PHONY: debug
 debug: CFLAGS+=-DDEBUG -g
-debug: solution
+debug: cleanall solution clean
 
 .PHONY: profile
 profile: CC+= -pg
-profile: solution
+profile: cleanall solution clean
 
 .PHONY: clean
 clean:
 	rm -f *.o
-cleanall: clean
-	rm -f solution
+
+.PHONY: cleanall
+cleanall:
+	rm -f *.o solution
