@@ -10,7 +10,7 @@
 #define BUFFER_SIZE 16*1024
 
 int _pguess = INT_MAX; // ensure REALLY large words are included
-int _guess = 0;
+int _guess = 10;
 
 char inalpha(char c) {
 	// edge cases
@@ -39,7 +39,7 @@ void load_file(char* path, Node* trie, int num) {
 			// parse buffer
 			for (int i = 0; i < bytes_read; i++) {
 				char c;
-				if (c = inalpha(buf[i])) {
+				if ((c = inalpha(buf[i]))) {
 					string.data[string.length++] = c;
 				} else { // save word and clear buffer
 					// ignore if word is < guess and smaller than previous guess
