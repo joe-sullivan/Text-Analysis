@@ -8,8 +8,8 @@
 // #define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - 'a')
 // #define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
 // '=0, a=1, b=2,...,z=26 (similar to above using bitmask)
-#define CHAR_TO_INDEX(c) ((c=='\'') ? 0 : c & 159)
-#define INDEX_TO_CHAR(i) ((i==0) ? '\'' : i | 96)
+#define CHAR_TO_INDEX(c) ((c=='\'') ? 0 : c & 159) // 0x10011111
+#define INDEX_TO_CHAR(i) ((i==0) ? '\'' : i | 96)  // 0x01100000
 
 // Returns new empty trie node
 Node* get_node() {

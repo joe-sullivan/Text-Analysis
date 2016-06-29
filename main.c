@@ -9,6 +9,9 @@
 
 #define BUFFER_SIZE 16*1024
 
+int _pguess = INT_MAX; // ensure REALLY large words are included
+int _guess = 8;
+
 char inalpha(char c) {
 	// edge cases
 	if (c == '\'') return c;
@@ -40,7 +43,8 @@ void load_file(char* path, Node* trie, int num) {
 					// add character to string and increment length
 					string.data[string.length++] = c;
 				} else if (string.length > 0) { // save word and clear buffer
-					insert(trie, &string, num);
+					if (string.length > _guess && string.length < _pguess)
+						insert(trie, &string, num);
 					string.length = 0;
 				}
 			}
@@ -82,12 +86,9 @@ int compare(const void* a, const void* b) {
 	return (len_a > len_b) - (len_a < len_b);
 }
 
-int main(int argc, char* argv[]) {
-	// initialize structure to hold words
-	Node* trie = get_node();
-
+bool doit(Node* trie, char* path) {
 	// use first argument as path
-	load_dir(argv[1], trie);
+	load_dir(path, trie);
 
 	// setup array to hold the longest common words
 	String longest_common_words[NUMBER_OF_COMMON];
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
 		longest_common_words[i].length = 0;
 
 	// find longest common words
-	longest(trie, longest_common_words);
+	if (!longest(trie, longest_common_words)) return false;
 
 	// sort
 	D qsort(longest_common_words, NUMBER_OF_COMMON, sizeof(String), compare);
@@ -106,6 +107,19 @@ int main(int argc, char* argv[]) {
 
 	// cleanup
 	D cleanup(trie);
+
+	return true;
+}
+
+int main(int argc, char* argv[]) {
+	// initialize structure to hold words
+	Node* trie = get_node();
+
+	while(!doit(trie, argv[1]) && _guess) {
+		_pguess = _guess; // save previous guess
+		_guess /= 2; // decrease guess size
+		D printf("Lowering guess from %d to %d\n", _pguess, _guess);
+	}
 
 	return 0;
 }
