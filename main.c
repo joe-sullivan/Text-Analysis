@@ -128,7 +128,8 @@ bool doit(Node* trie, char* path) {
 
 	// print them
 	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		printf("%s\n", longest_common_words[i].data);
+		printf("%.*s\n", longest_common_words[i].length,
+		                 longest_common_words[i].data);
 
 	// cleanup
 	D cleanup(trie);
