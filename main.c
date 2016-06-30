@@ -43,7 +43,7 @@ void load_file(char* path, Node* trie, int num) {
 					// add character to string and increment length
 					string.data[string.length++] = c;
 				} else if (string.length > 0) { // save word and clear buffer
-					if (string.length > _guess && string.length < _pguess)
+					if (string.length > _guess && string.length <= _pguess)
 						insert(trie, &string, num);
 					string.length = 0;
 				}
