@@ -17,10 +17,10 @@ char inalpha(char c) {
 	if (c == '\'') return c;
 
 	// or char with 0x00100000 to convert to lower
-	char ret = c | 32;
-	// check if ret is valid
-	if (ret >= 'a' && ret <= 'z')
-		return ret;
+	char lower = c | 32;
+	// check if 'a' <= lower <= 'z'
+	if ((unsigned)(lower-'a') < 'z'-'a') // this creates a single branch
+		return lower;
 	return 0;
 }
 
