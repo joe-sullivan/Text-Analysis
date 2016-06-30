@@ -1,9 +1,3 @@
-#include <pthread.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #ifdef DEBUG
 # define D if(1)
 #else
@@ -11,17 +5,22 @@
 #endif
 
 #define ALPHABET_SIZE 27
-#define MAX_WORD_SIZE 256
+#define MAX_WORD_SIZE 128
 #define NUMBER_OF_SOURCES 20
 #define NUMBER_OF_COMMON 5
 
-struct Node {
-	struct Node *children[ALPHABET_SIZE];
+typedef struct _node {
+	struct _node* children[ALPHABET_SIZE];
 	bool is_leaf[NUMBER_OF_SOURCES];
-};
+} Node;
 
-struct Node *get_node();
-void insert(struct Node *root, const char *key, int source_id);
-bool search(struct Node *root, const char *key, int source_id);
-void longest(struct Node *node, char* word, int idx, char* best[]);
-void cleanup(struct Node *node);
+typedef struct _string {
+	int length;
+	char data[MAX_WORD_SIZE];
+} String;
+
+Node* get_node();
+void insert(Node* root, String* string, int source_id);
+bool search(Node* root, const char* key, int source_id);
+bool longest(Node* node, String best[]);
+void cleanup(Node* node);

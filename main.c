@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <limits.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,63 +11,77 @@
 #define BUFFER_SIZE 16*1024
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-struct Node* trie;
-
+Node *trie;
 struct arg_struct {
 	char* path;
 	int num;
 };
 
+int _pguess = INT_MAX; // ensure REALLY large words are included
+int _guess = 8;
+
+char inalpha(char c) {
+	// edge cases
+	if (c == '\'') return c;
+
+	// or char with 0x00100000 to convert to lower
+	char lower = c | 32;
+	// check if 'a' <= lower <= 'z'
+	if ((unsigned)(lower-'a') < 'z'-'a') // this creates a single branch
+		return lower;
+	return 0;
+}
 void* load_file(void *vargp) {
 	struct arg_struct *args = (struct arg_struct *)vargp;
 	char* path = args->path;
 	int num = args->num;
 	D printf("Loading file: %s\n", path);
 
-	FILE *file;
-	file = fopen(path, "r");
-	if(file) {
-		int idx = 0;
-		char word[MAX_WORD_SIZE] = {0};
-		char buf[BUFFER_SIZE] = {0};
+	FILE* file = fopen(path, "r");
+	if (file) {
+		String string;
+		string.length = 0;
+		char buf[BUFFER_SIZE];
 
 		// read book into buffer
-		while(fread(buf, sizeof(char), BUFFER_SIZE, file)) {
+		int bytes_read;
+		while((bytes_read = fread(buf, sizeof(char), BUFFER_SIZE, file))) {
 			// parse buffer
-			for (int i = 0; i < BUFFER_SIZE; i++) {
-				char c = buf[i];
-				if (isalpha(c) || c == '\'') {
-					word[idx++] = tolower(c);
-				} else { // save word and clear buffer
-					word[idx] = 0; // null terminator
-					idx = 0;
-					pthread_mutex_lock(&mutex);
-					insert(trie, word, num);
-					pthread_mutex_unlock(&mutex);
-					memset(word, 0, MAX_WORD_SIZE);
+			for (int i = 0; i < bytes_read; i++) {
+				char c;
+				if ((c = inalpha(buf[i]))) {
+					// add character to string and increment length
+					string.data[string.length++] = c;
+				} else if (string.length > 0) { // save word and clear buffer
+					if (string.length > _guess && string.length <= _pguess) {
+						pthread_mutex_lock(&mutex);
+						insert(trie, &string, num);
+						pthread_mutex_unlock(&mutex);
+					}
+					string.length = 0;
 				}
 			}
 		}
 	}
 	fclose(file);
 	D printf("Finished loading file[%d]: %s\n", num, path);
-	free(path);
+	D free(path);
 	pthread_exit(NULL);
 }
 
 void load_dir(char* path) {
 	D printf("Looking at directory: %s\n", path);
 
-	DIR *d;
+	DIR* d;
 	struct dirent *dir;
 	d = opendir(path);
 	if (d) {
 		char* fullpath;
 		int id = 0; // source text id
-		pthread_t tid[NUMBER_OF_SOURCES];
 
+		pthread_t tid[NUMBER_OF_SOURCES];
 		struct arg_struct args[NUMBER_OF_SOURCES];
-		while ((dir = readdir(d)) != NULL) {
+		while (id < NUMBER_OF_SOURCES && (dir = readdir(d)) != NULL) {
 			char* ext = strchr(dir->d_name, '.');
 			if (ext && !strcmp(ext, ".txt")) { // files with .txt extention
 				// build full file path
@@ -75,7 +90,7 @@ void load_dir(char* path) {
 				strcat(fullpath, "/"); // ensure slash
 				strcat(fullpath, dir->d_name);
 
-				// asynchronously load words into dictionary
+				// load words into dictionary
 				args[id].path = fullpath;
 				args[id].num = id;
 				pthread_create(&tid[id], NULL, load_file, &args[id]);
@@ -90,34 +105,50 @@ void load_dir(char* path) {
 	}
 }
 
-void lcw(struct Node* trie) {
-	D printf("Getting longest common words...\n");
-	char buffer1[MAX_WORD_SIZE];
-	char* longest_common_words[NUMBER_OF_COMMON];
-	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		longest_common_words[i] = (char*)calloc(MAX_WORD_SIZE, sizeof(char));
-	longest(trie, buffer1, 0, longest_common_words);
-	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		printf("%s\n", longest_common_words[i]);
-	printf("\n");
-
-	// cleanup
-	for (int i = 0; i < NUMBER_OF_COMMON; i++)
-		free(longest_common_words[i]);
+int compare(const void* b, const void* a) {
+	int len_a = ((String*)a)->length;
+	int len_b = ((String*)b)->length;
+	return (len_a > len_b) - (len_a < len_b);
 }
 
-int main(int argc, char *argv[]) {
+bool doit(Node* trie, char* path) {
+	// use first argument as path
+	load_dir(path);
+
+	// setup array to hold the longest common words
+	String longest_common_words[NUMBER_OF_COMMON];
+	for (int i = 0; i < NUMBER_OF_COMMON; i++)
+		longest_common_words[i].length = 0;
+
+	// find longest common words
+	if (!longest(trie, longest_common_words)) return false;
+
+	// sort
+	D qsort(longest_common_words, NUMBER_OF_COMMON, sizeof(String), compare);
+
+	// print them
+	for (int i = 0; i < NUMBER_OF_COMMON; i++)
+		printf("%s\n", longest_common_words[i].data);
+
+	// cleanup
+	D cleanup(trie);
+
+	return true;
+}
+
+int main(int argc, char* argv[]) {
 	// initialize structure to hold words
 	trie = get_node();
 
-	// use first argument as path
-	load_dir(argv[1]);
+	if (argc > 2)
+		_guess = atoi(argv[2]);
+	D printf("Guess: %d\n", _guess);
 
-	// retrieve longest common word
-	lcw(trie);
-
-	// cleanup (ignored for extra speed)
-	// cleanup(trie);
+	while (!doit(trie, argv[1]) && _guess) {
+		_pguess = _guess; // save previous guess
+		_guess /= 2; // decrease guess size
+		D printf("Lowering guess from %d to %d\n", _pguess, _guess);
+	}
 
 	return 0;
 }

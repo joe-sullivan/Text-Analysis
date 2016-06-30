@@ -1,59 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 #include "trie.h"
 
-#define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - (int)'a')
-#define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
+// a=0, b=1,...,z=25, '=26
+// #define CHAR_TO_INDEX(c) ((c=='\'') ? 26 : (int)c - 'a')
+// #define INDEX_TO_CHAR(i) ((i==26) ? '\'' : (char)i + 'a')
+// '=0, a=1, b=2,...,z=26 (similar to above using bitmask)
+#define CHAR_TO_INDEX(c) ((c=='\'') ? 0 : c & 159) // 0x10011111
+#define INDEX_TO_CHAR(i) ((i==0) ? '\'' : i | 96)  // 0x01100000
 
-// returns new trie node (initialized to NULL)
-struct Node *get_node() {
-	struct Node *pNode = NULL;
-	pNode = (struct Node*)malloc(sizeof(struct Node));
-	if (pNode) {
-		for (int i = 0; i < NUMBER_OF_SOURCES; i++)
-			pNode->is_leaf[i] = false;
-		for (int i = 0; i < ALPHABET_SIZE; i++)
-			pNode->children[i] = NULL;
-	}
-	return pNode;
+// Returns new empty trie node
+Node* get_node() {
+	return (Node*)calloc(1, sizeof(Node));
 }
 
-void insert(struct Node *root, const char *key, int source_id) {
+void insert(Node* root, String* string, int source_id) {
+	int level;
 	int index;
-	int level = 0;
-	int length = strlen(key);
 
-	struct Node *pCrawl = root;
-	for (level = 0; level < length; level++) {
-		index = CHAR_TO_INDEX(key[level]);
-		if (!pCrawl->children[index])
-			pCrawl->children[index] = get_node();
-		pCrawl = pCrawl->children[index];
+	Node *crawl = root;
+
+	for (level = 0; level < string->length; level++) {
+		index = CHAR_TO_INDEX(string->data[level]);
+		if (!crawl->children[index])
+			crawl->children[index] = get_node();
+		crawl = crawl->children[index];
 	}
 
 	// mark last node as leaf
-	pCrawl->is_leaf[source_id] = true;
+	crawl->is_leaf[source_id] = true;
 }
 
-// returns true if key presents in trie (for all sources), else false
-bool search(struct Node *root, const char *key, int source_id) {
+// Returns true if key presents in trie, else false
+bool search(Node* root, const char* key, int source_id) {
 	int level;
 	int length = strlen(key);
 	int index;
-	struct Node *pCrawl = root;
+	Node* crawl = root;
 
 	for (level = 0; level < length; level++) {
 		index = CHAR_TO_INDEX(key[level]);
 
-		if (!pCrawl->children[index])
+		if (!crawl->children[index])
 			return false;
 
-		pCrawl = pCrawl->children[index];
+		crawl = crawl->children[index];
 	}
 
-	return (pCrawl != NULL && pCrawl->is_leaf[source_id]);
+	return (crawl != NULL && crawl->is_leaf[source_id]);
 }
 
-void longest(struct Node *node, char* word, int idx, char* best[]) {
-	// if word is new longest then copy to _best_ buffer
+int _longest(Node* node, char* word, int idx, String best[],int max_idx) {
+	// set is_leaf
 	bool is_leaf = true;
 	for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
 		if (!node->is_leaf[i]) {
@@ -65,14 +65,16 @@ void longest(struct Node *node, char* word, int idx, char* best[]) {
 	// find smallest candidate
 	int smallest_id = 0;
 	for (int i = 0; i < NUMBER_OF_COMMON; i++) {
-		if (strlen(best[i]) < strlen(best[smallest_id]))
+		if (best[i].length < best[smallest_id].length)
 			smallest_id = i;
 	}
+	if (smallest_id > max_idx) max_idx = smallest_id;
 
 	// replace smallest with current word
-	if (is_leaf && (idx >= strlen(best[smallest_id]))) {
-		D printf("[%s][%s]\n", best[smallest_id], word);
-		strcpy(best[smallest_id], word);
+	if (is_leaf && (idx >= best[smallest_id].length)) {
+		D printf("[%s][%s]\n", best[smallest_id].data, word);
+		strcpy(best[smallest_id].data, word);
+		best[smallest_id].length = idx;
 	}
 
 	// iterate over children
@@ -80,18 +82,25 @@ void longest(struct Node *node, char* word, int idx, char* best[]) {
 		// store character in
 		word[idx] = INDEX_TO_CHAR(i);
 
-		struct Node *child = node->children[i];
+		Node* child = node->children[i];
 		if (child) // continue to search branch
-			longest(child, word, idx+1, best);
+			max_idx = _longest(child, word, idx+1, best, max_idx);
 
 		// clear current character for next iteration
 		word[idx] = 0;
 	}
+	return max_idx;
 }
 
-void cleanup(struct Node *node) {
+bool longest(Node* node, String best[]) {
+	char buffer[MAX_WORD_SIZE];
+	int size = _longest(node, buffer, 0, best, 0);
+	return size == (NUMBER_OF_COMMON-1);
+}
+
+void cleanup(Node* node) {
 	for (int i = 0; i < ALPHABET_SIZE; i++) {
-		struct Node *child = node->children[i];
+		Node* child = node->children[i];
 		if (child)
 			cleanup(child);
 	}
