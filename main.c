@@ -80,7 +80,7 @@ void load_dir(char* path, Node* trie) {
 	}
 }
 
-int compare(const void* a, const void* b) {
+int compare(const void* b, const void* a) {
 	int len_a = ((String*)a)->length;
 	int len_b = ((String*)b)->length;
 	return (len_a > len_b) - (len_a < len_b);
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 		_guess = atoi(argv[2]);
 	D printf("Guess: %d\n", _guess);
 
-	while(!doit(trie, argv[1]) && _guess) {
+	while (!doit(trie, argv[1]) && _guess) {
 		_pguess = _guess; // save previous guess
 		_guess /= 2; // decrease guess size
 		D printf("Lowering guess from %d to %d\n", _pguess, _guess);
