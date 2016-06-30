@@ -115,6 +115,10 @@ int main(int argc, char* argv[]) {
 	// initialize structure to hold words
 	Node* trie = get_node();
 
+	if (argc > 2)
+		_guess = atoi(argv[2]);
+	D printf("Guess: %d\n", _guess);
+
 	while(!doit(trie, argv[1]) && _guess) {
 		_pguess = _guess; // save previous guess
 		_guess /= 2; // decrease guess size
